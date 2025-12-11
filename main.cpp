@@ -16,17 +16,26 @@ float randFloat(float min, float max) {
 }
 
 // -----------------------------
+// Distance function
+// -----------------------------
+float distance(const Vector2f& a, const Vector2f& b) {
+    float dx = a.x - b.x;
+    float dy = a.y - b.y;
+    return sqrt(dx * dx + dy * dy);
+}
+
+// -----------------------------
 // Ball structure
 // -----------------------------
 struct Ball {
     CircleShape shape;
     Vector2f velocity;
-    float mass;
+    float mass, radius;
 
     Ball(float mass, Vector2f pos, Vector2f vel)
         : mass(mass), velocity(vel)
     {
-        float radius = sqrt(mass);     // radius = √mass
+        radius = sqrt(mass);     // radius = √mass
         shape.setRadius(radius);
         shape.setFillColor(Color::White);
         shape.setOrigin(radius, radius);
@@ -57,10 +66,17 @@ struct Ball {
             pos.y = size.y - r;
             velocity.y *= -1;
         }
-
         shape.setPosition(pos);
     }
 };
+
+// -----------------------------
+// Collision detection
+// -----------------------------
+bool collision(Ball& ball1, Ball& ball2) {
+    float d = distance(ball1.shape.getPosition(), ball2.shape.getPosition());
+    return d <= (ball1.radius + ball2.radius);
+}
 
 int main() {
     RenderWindow window(VideoMode(800, 600), "SFML Two Balls");
@@ -87,7 +103,7 @@ int main() {
     while (window.isOpen()) {
         Event event;
         while (window.pollEvent(event)) {
-            if (event.type == Event::Closed)
+            if (event.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Q))
                 window.close();
         }
 
@@ -95,6 +111,11 @@ int main() {
 
         ball1.update(dt, window);
         ball2.update(dt, window);
+
+        // Collision check example
+        if (collision(ball1, ball2)) {
+            cout << "Collision detected!" << endl;
+        }
 
         window.clear(Color(20, 20, 20));
         window.draw(ball1.shape);
